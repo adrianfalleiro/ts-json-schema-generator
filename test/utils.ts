@@ -7,7 +7,7 @@ import path from "node:path";
 import type { TestFn } from "node:test";
 import stringify from "safe-stable-stringify";
 import { t } from "try";
-import type ts from "typescript";
+import type * as ts from "../src/ts.js";
 import type { FormatterAugmentor } from "../factory/formatter";
 import { createFormatter } from "../factory/formatter";
 import { createGenerator } from "../factory/generator.js";

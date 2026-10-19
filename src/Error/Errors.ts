@@ -1,5 +1,5 @@
 import type { JSONSchema7 } from "json-schema";
-import ts from "typescript";
+import * as ts from "../ts.js";
 import type { BaseType } from "../Type/BaseType.js";
 import { BaseError, type PartialDiagnostic } from "./BaseError.js";
 

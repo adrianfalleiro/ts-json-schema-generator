@@ -1,4 +1,4 @@
-import type ts from "typescript";
+import type * as ts from "./ts.js";
 import { UnhandledError, UnknownNodeError } from "./Error/Errors.js";
 import type { MutableParser } from "./MutableParser.js";
 import type { Context } from "./NodeParser.js";

@@ -1,5 +1,5 @@
 import type { NodeParser } from "../NodeParser.js";
-import ts from "typescript";
+import * as ts from "../ts.js";
 import type { Context } from "../NodeParser.js";
 import type { SubNodeParser } from "../SubNodeParser.js";
 import type { BaseType } from "../Type/BaseType.js";
@@ -42,7 +42,7 @@ export class ObjectLiteralExpressionNodeParser implements SubNodeParser {
         for (const spread of spreadAssignments) {
             const referenced = this.checker.typeToTypeNode(
                 this.checker.getTypeAtLocation(spread.expression),
-                undefined,
+                spread,
                 ts.NodeBuilderFlags.NoTruncation,
             );
 
@@ -72,7 +72,7 @@ export class ObjectLiteralExpressionNodeParser implements SubNodeParser {
             if (ts.isShorthandPropertyAssignment(t)) {
                 type = this.checker.typeToTypeNode(
                     this.checker.getTypeAtLocation(t),
-                    undefined,
+                    t,
                     ts.NodeBuilderFlags.NoTruncation,
                 );
             } else if (ts.isPropertyAssignment(t)) {

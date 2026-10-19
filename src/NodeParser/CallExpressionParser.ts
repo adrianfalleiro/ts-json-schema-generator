@@ -1,11 +1,11 @@
 import { TupleType } from "../Type/TupleType.js";
-import ts from "typescript";
+import * as ts from "../ts.js";
 import type { NodeParser } from "../NodeParser.js";
 import { Context } from "../NodeParser.js";
 import type { SubNodeParser } from "../SubNodeParser.js";
 import type { BaseType } from "../Type/BaseType.js";
 import { UnionType } from "../Type/UnionType.js";
-import { LiteralType } from "../Type/LiteralType.js";
+import { LiteralType, type LiteralValue } from "../Type/LiteralType.js";
 import { SymbolType } from "../Type/SymbolType.js";
 import { UnknownNodeError } from "../Error/Errors.js";
 
@@ -22,9 +22,12 @@ export class CallExpressionParser implements SubNodeParser {
         const type = this.typeChecker.getTypeAtLocation(node);
 
         // FIXME: remove special case
-        if (Array.isArray((type as any)?.typeArguments?.[0]?.types)) {
+        const typeArgument = this.typeChecker.getTypeArguments(type)[0];
+        if (typeArgument?.isUnionType() || typeArgument?.isIntersectionType()) {
             return new TupleType([
-                new UnionType((type as any).typeArguments[0].types.map((t: any) => new LiteralType(t.value))),
+                new UnionType(
+                    typeArgument.getTypes().map((t) => new LiteralType((t as ts.LiteralType).value as LiteralValue)),
+                ),
             ]);
         }
 
@@ -33,7 +36,7 @@ export class CallExpressionParser implements SubNodeParser {
             return new SymbolType();
         }
 
-        const symbol = type.symbol || type.aliasSymbol;
+        const symbol = type.getSymbol() || type.getAliasSymbol();
 
         // For funtions like <T>(type: T) => T, there won't be any reference to the original
         // type. Using type checker to infer the actual return type without mapping the whole
@@ -41,8 +44,7 @@ export class CallExpressionParser implements SubNodeParser {
         // approach.
         const decl =
             this.typeChecker.typeToTypeNode(type, node, ts.NodeBuilderFlags.IgnoreErrors) ||
-            symbol.valueDeclaration ||
-            symbol.declarations?.[0];
+            (symbol && (ts.getValueDeclaration(symbol) || ts.getDeclarations(symbol)[0]));
 
         if (!decl) {
             throw new UnknownNodeError(node);

@@ -1,4 +1,4 @@
-import ts from "typescript";
+import * as ts from "../ts.js";
 import { Context, type NodeParser } from "../NodeParser.js";
 import type { SubNodeParser } from "../SubNodeParser.js";
 import { AnnotatedType } from "../Type/AnnotatedType.js";
@@ -35,7 +35,7 @@ export class TypeReferenceNodeParser implements SubNodeParser {
         if (typeSymbol.flags & ts.SymbolFlags.Alias) {
             const aliasedSymbol = this.typeChecker.getAliasedSymbol(typeSymbol);
 
-            const declaration = aliasedSymbol.declarations?.filter((n: ts.Declaration) => !invalidTypes[n.kind])[0];
+            const declaration = ts.getDeclarations(aliasedSymbol).filter((n) => !invalidTypes[n.kind])[0];
 
             if (!declaration) {
                 // fallback for bun.sh
@@ -78,7 +78,7 @@ export class TypeReferenceNodeParser implements SubNodeParser {
         }
 
         return this.childNodeParser.createType(
-            typeSymbol.declarations!.filter((n: ts.Declaration) => !invalidTypes[n.kind])[0],
+            ts.getDeclarations(typeSymbol).filter((n) => !invalidTypes[n.kind])[0],
             this.createSubContext(node, context),
         );
     }

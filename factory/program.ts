@@ -1,13 +1,14 @@
+import * as fs from "node:fs";
 import * as path from "node:path";
 import { globSync } from "glob";
 import normalize from "normalize-path";
-import ts from "typescript";
+import * as ts from "../src/ts.js";
 import type { CompletedConfig, Config } from "../src/Config.js";
 import { BuildError } from "../src/Error/Errors.js";
 
 function loadTsConfigFile(configFile: string) {
     configFile = path.resolve(configFile);
-    const raw = ts.sys.readFile(configFile);
+    const raw = fs.existsSync(configFile) && fs.readFileSync(configFile, "utf8");
 
     if (!raw) {
         throw new BuildError({
@@ -15,10 +16,10 @@ function loadTsConfigFile(configFile: string) {
         });
     }
 
-    const config = ts.parseConfigFileTextToJson(configFile, raw);
+    const config = ts.getAPI().readConfigFile(configFile);
 
     if (config.error) {
-        throw new BuildError(config.error);
+        throw new BuildError({ messageText: config.error.text, relatedInformation: [config.error] });
     }
 
     if (!config.config) {
@@ -27,17 +28,9 @@ function loadTsConfigFile(configFile: string) {
         });
     }
 
-    const parseResult = ts.parseJsonConfigFileContent(
-        config.config,
-        ts.sys,
-        path.resolve(path.dirname(configFile)),
-        {},
-        configFile,
-    );
+    const parseResult = ts.getAPI().parseJsonConfigFileContent(config.config, { configFileName: configFile });
     parseResult.options.noEmit = true;
-    delete parseResult.options.out;
     delete parseResult.options.outDir;
-    delete parseResult.options.outFile;
     delete parseResult.options.declaration;
     delete parseResult.options.declarationDir;
     delete parseResult.options.declarationMap;
@@ -61,7 +54,6 @@ function getTsConfig(config: Config): Pick<ts.ParsedCommandLine, "fileNames" | "
             strictNullChecks: false,
             skipLibCheck: true,
             skipDefaultLibCheck: true,
-            esModuleInterop: true,
             types: ["node"],
         },
     };

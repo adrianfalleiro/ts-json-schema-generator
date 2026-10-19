@@ -1,4 +1,4 @@
-import type ts from "typescript";
+import type * as ts from "../ts.js";
 import { BaseType } from "./BaseType.js";
 import type { ObjectType } from "./ObjectType.js";
 

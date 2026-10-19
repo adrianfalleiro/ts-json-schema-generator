@@ -1,5 +1,5 @@
-import type { MethodSignature, PropertySignature } from "typescript";
-import ts from "typescript";
+import type { MethodSignature, PropertySignature } from "../ts.js";
+import * as ts from "../ts.js";
 import type { Context, NodeParser } from "../NodeParser.js";
 import type { SubNodeParser } from "../SubNodeParser.js";
 import type { BaseType } from "../Type/BaseType.js";
@@ -49,7 +49,7 @@ export class TypeLiteralNodeParser implements SubNodeParser {
                     new ObjectProperty(
                         this.getPropertyName(propertyNode.name),
                         this.childNodeParser.createType(propertyNode.type!, context),
-                        !propertyNode.questionToken,
+                        !ts.hasQuestionToken(propertyNode),
                     ),
             )
             .filter((prop) => {
@@ -85,19 +85,16 @@ export class TypeLiteralNodeParser implements SubNodeParser {
             const symbol = this.typeChecker.getSymbolAtLocation(propertyName);
 
             if (symbol) {
-                return symbol.getName();
+                return symbol.name;
             }
         }
 
-        try {
-            return propertyName.getText();
-        } catch {
-            // When propertyName was programmatically created, it doesn't have a source file.
-            // Then, getText() will throw an error. But, for programmatically created nodes,`
-            // `escapedText` or `text` is available.
-            // Only `text` will be available when propertyName contains strange characters and it cannot be escaped
-            // or if it is a number.
-            return ((propertyName as ts.Identifier).escapedText as string) ?? (propertyName as ts.StringLiteral).text;
+        // When propertyName was programmatically created, it doesn't have a source file, so getText() cannot be used.
+        // But, for programmatically created nodes, `text` is available.
+        if (ts.isSynthesizedNode(propertyName)) {
+            return (propertyName as ts.Identifier | ts.StringLiteral).text;
         }
+
+        return propertyName.getText();
     }
 }

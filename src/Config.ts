@@ -1,4 +1,4 @@
-import type ts from "typescript";
+import type * as ts from "./ts.js";
 
 export interface Config {
     /**

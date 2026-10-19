@@ -1,7 +1,6 @@
 import json5 from "json5";
-import type ts from "typescript";
+import * as ts from "../ts.js";
 import type { Annotations } from "../Type/AnnotatedType.js";
-import { symbolAtNode } from "../Utils/symbolAtNode.js";
 import { getFullDescription } from "../Utils/getFullDescription.js";
 import { BasicAnnotationsReader } from "./BasicAnnotationsReader.js";
 
@@ -26,12 +25,7 @@ export class ExtendedAnnotationsReader extends BasicAnnotationsReader {
     }
 
     public isNullable(node: ts.Node): boolean {
-        const symbol = symbolAtNode(node);
-        if (!symbol) {
-            return false;
-        }
-
-        const jsDocTags: ts.JSDocTagInfo[] = symbol.getJsDocTags();
+        const jsDocTags = ts.getJsDocTagsOfNode(node);
         if (!jsDocTags || !jsDocTags.length) {
             return false;
         }
@@ -41,14 +35,12 @@ export class ExtendedAnnotationsReader extends BasicAnnotationsReader {
     }
 
     private getDescriptionAnnotation(node: ts.Node): Annotations | undefined {
-        const symbol = symbolAtNode(node);
-        if (!symbol) {
+        const comments = this.typeChecker.getDocumentationCommentOfNode(node);
+        if (!comments) {
             return undefined;
         }
 
         const annotations: { description?: string; markdownDescription?: string; fullDescription?: string } = {};
-
-        const comments: ts.SymbolDisplayPart[] = symbol.getDocumentationComment(this.typeChecker);
 
         if (comments && comments.length) {
             const markdownDescription = comments
@@ -75,12 +67,7 @@ export class ExtendedAnnotationsReader extends BasicAnnotationsReader {
     }
 
     private getTypeAnnotation(node: ts.Node): Annotations | undefined {
-        const symbol = symbolAtNode(node);
-        if (!symbol) {
-            return undefined;
-        }
-
-        const jsDocTags: ts.JSDocTagInfo[] = symbol.getJsDocTags();
+        const jsDocTags = ts.getJsDocTagsOfNode(node);
         if (!jsDocTags || !jsDocTags.length) {
             return undefined;
         }
@@ -98,12 +85,7 @@ export class ExtendedAnnotationsReader extends BasicAnnotationsReader {
      * See https://tsdoc.org/pages/tags/example/
      */
     private getExampleAnnotation(node: ts.Node): Annotations | undefined {
-        const symbol = symbolAtNode(node);
-        if (!symbol) {
-            return undefined;
-        }
-
-        const jsDocTags: ts.JSDocTagInfo[] = symbol.getJsDocTags();
+        const jsDocTags = ts.getJsDocTagsOfNode(node);
         if (!jsDocTags || !jsDocTags.length) {
             return undefined;
         }

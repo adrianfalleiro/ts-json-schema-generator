@@ -1,4 +1,4 @@
-import ts from "typescript";
+import * as ts from "./ts.js";
 import type { Context } from "./NodeParser.js";
 import type { SubNodeParser } from "./SubNodeParser.js";
 import type { BaseType } from "./Type/BaseType.js";
@@ -38,8 +38,7 @@ export class ExposeNodeParser implements SubNodeParser {
             return false;
         }
 
-        const localSymbol: ts.Symbol = (node as any).localSymbol;
-        return localSymbol ? "exportSymbol" in localSymbol : false;
+        return ts.isExportedDeclaration(node);
     }
 
     protected getDefinitionName(node: ts.Node, context: Context): string {

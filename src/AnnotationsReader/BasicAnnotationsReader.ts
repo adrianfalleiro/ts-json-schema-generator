@@ -1,8 +1,7 @@
 import json5 from "json5";
-import type ts from "typescript";
+import * as ts from "../ts.js";
 import type { AnnotationsReader } from "../AnnotationsReader.js";
 import type { Annotations } from "../Type/AnnotatedType.js";
-import { symbolAtNode } from "../Utils/symbolAtNode.js";
 
 export class BasicAnnotationsReader implements AnnotationsReader {
     private static requiresDollar = new Set<string>(["id", "comment", "ref"]);
@@ -65,12 +64,7 @@ export class BasicAnnotationsReader implements AnnotationsReader {
     public constructor(private extraTags?: Set<string>) {}
 
     public getAnnotations(node: ts.Node): Annotations | undefined {
-        const symbol = symbolAtNode(node);
-        if (!symbol) {
-            return undefined;
-        }
-
-        const jsDocTags: ts.JSDocTagInfo[] = symbol.getJsDocTags();
+        const jsDocTags = ts.getJsDocTagsOfNode(node);
         if (!jsDocTags || !jsDocTags.length) {
             return undefined;
         }

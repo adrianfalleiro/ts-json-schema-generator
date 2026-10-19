@@ -1,4 +1,4 @@
-import ts from "typescript";
+import * as ts from "../ts.js";
 import { LogicError } from "../Error/Errors.js";
 import type { Context, NodeParser } from "../NodeParser.js";
 import type { SubNodeParser } from "../SubNodeParser.js";
@@ -26,7 +26,8 @@ export class IndexedAccessTypeNodeParser implements SubNodeParser {
 
     private createIndexedType(objectType: ts.TypeNode, context: Context, indexType: BaseType): BaseType | undefined {
         if (ts.isTypeReferenceNode(objectType) && indexType instanceof LiteralType) {
-            const declaration = this.typeChecker.getSymbolAtLocation(objectType.typeName)?.declarations?.[0];
+            const symbol = this.typeChecker.getSymbolAtLocation(objectType.typeName);
+            const declaration = symbol && ts.getDeclarations(symbol)[0];
 
             if (!declaration || !ts.isTypeAliasDeclaration(declaration) || !ts.isTypeLiteralNode(declaration.type)) {
                 return undefined;

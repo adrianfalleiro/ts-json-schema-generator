@@ -1,4 +1,4 @@
-import ts from "typescript";
+import * as ts from "./ts.js";
 import type { Config } from "./Config.js";
 import { MultipleDefinitionsError, RootlessError, UnhandledError } from "./Error/Errors.js";
 import { Context, type NodeParser } from "./NodeParser.js";
@@ -12,7 +12,6 @@ import { AnnotatedType } from "./Type/AnnotatedType.js";
 import { hasJsDocTag } from "./Utils/hasJsDocTag.js";
 import { removeUnreachable } from "./Utils/removeUnreachable.js";
 import { castArray } from "./Utils/castArray.js";
-import { symbolAtNode } from "./Utils/symbolAtNode.js";
 
 export class SchemaGenerator {
     public constructor(
@@ -73,17 +72,17 @@ export class SchemaGenerator {
             return fullNames.map((name) => this.findNamedNode(name));
         }
 
-        const rootFileNames = this.program.getRootFileNames();
-        const rootSourceFiles = this.program
-            .getSourceFiles()
+        const rootFileNames = ts.getRootFileNames(this.program);
+        const rootSourceFiles = ts
+            .getSourceFiles(this.program)
             .filter((sourceFile) => rootFileNames.includes(sourceFile.fileName));
         const rootNodes = new Map<string, ts.Node>();
-        this.appendTypes(rootSourceFiles, this.program.getTypeChecker(), rootNodes);
+        this.appendTypes(rootSourceFiles, ts.getTypeChecker(this.program), rootNodes);
         return [...rootNodes.values()];
     }
 
     protected findNamedNode(fullName: string): ts.Node {
-        const typeChecker = this.program.getTypeChecker();
+        const typeChecker = ts.getTypeChecker(this.program);
         const allTypes = new Map<string, ts.Node>();
         const { projectFiles, externalFiles } = this.partitionFiles();
 
@@ -171,7 +170,7 @@ export class SchemaGenerator {
         const projectFiles = new Array<ts.SourceFile>();
         const externalFiles = new Array<ts.SourceFile>();
 
-        for (const sourceFile of this.program.getSourceFiles()) {
+        for (const sourceFile of ts.getSourceFiles(this.program)) {
             const destination = sourceFile.fileName.includes("/node_modules/") ? externalFiles : projectFiles;
             destination.push(sourceFile);
         }
@@ -230,15 +229,17 @@ export class SchemaGenerator {
         if (ts.isExportSpecifier(node)) {
             const symbol = typeChecker.getExportSpecifierLocalTargetSymbol(node);
 
-            if (symbol?.declarations?.length === 1) {
-                const declaration = symbol.declarations[0];
+            const declarations = symbol && ts.getDeclarations(symbol);
+            if (declarations?.length === 1) {
+                const declaration = declarations[0];
 
                 if (ts.isImportSpecifier(declaration)) {
                     // Handling the `Foo` in `import { Foo } from "./lib"; export { Foo };`
                     const type = typeChecker.getTypeAtLocation(declaration);
 
-                    if (type.symbol?.declarations?.length === 1) {
-                        this.inspectNode(type.symbol.declarations[0], typeChecker, allTypes);
+                    const typeDeclarations = type.getSymbol() && ts.getDeclarations(type.getSymbol()!);
+                    if (typeDeclarations?.length === 1) {
+                        this.inspectNode(typeDeclarations[0], typeChecker, allTypes);
                     }
                 } else {
                     // Handling the `Bar` in `export { Bar } from './lib';`
@@ -269,13 +270,13 @@ export class SchemaGenerator {
             const symbol = typeChecker.getSymbolAtLocation(node.moduleSpecifier);
 
             // should never hit this (maybe type error in user's code)
-            if (!symbol || !symbol.declarations) {
+            if (!symbol) {
                 return;
             }
 
             // module augmentation can result in more than one source file
-            for (const source of symbol.declarations) {
-                const sourceSymbol = typeChecker.getSymbolAtLocation(source);
+            for (const source of ts.getDeclarations(symbol)) {
+                const sourceSymbol = typeChecker.getSymbolOfNode(source);
 
                 if (!sourceSymbol) {
                     return;
@@ -284,9 +285,9 @@ export class SchemaGenerator {
                 const moduleExports = typeChecker.getExportsOfModule(sourceSymbol);
 
                 for (const moduleExport of moduleExports) {
-                    const nodes =
-                        moduleExport.declarations ||
-                        (!!moduleExport.valueDeclaration && [moduleExport.valueDeclaration]);
+                    const declarations = ts.getDeclarations(moduleExport);
+                    const valueDeclaration = ts.getValueDeclaration(moduleExport);
+                    const nodes = declarations.length ? declarations : !!valueDeclaration && [valueDeclaration];
 
                     // should never hit this (maybe type error in user's code)
                     if (!nodes) {
@@ -312,8 +313,7 @@ export class SchemaGenerator {
             return false;
         }
 
-        //@ts-expect-error - internal typescript API
-        return !!node.localSymbol?.exportSymbol;
+        return ts.isExportedDeclaration(node);
     }
 
     protected isGenericType(node: ts.TypeAliasDeclaration): boolean {
@@ -321,6 +321,6 @@ export class SchemaGenerator {
     }
 
     protected getFullName(node: ts.Declaration, typeChecker: ts.TypeChecker): string {
-        return typeChecker.getFullyQualifiedName(symbolAtNode(node)!).replace(/".*"\./, "");
+        return typeChecker.getFullyQualifiedName(typeChecker.getSymbolOfNode(node)!).replace(/".*"\./, "");
     }
 }

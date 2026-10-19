@@ -1,6 +1,5 @@
 import { it } from "node:test";
-import ts from "typescript";
-import type { BaseType, Context, ReferenceType, SubNodeParser } from "../../../index";
+import { ts, type BaseType, type Context, type ReferenceType, type SubNodeParser } from "../../../index";
 import { StringType } from "../../../src/Type/StringType";
 import { assertConfigSchema } from "../../utils";
 

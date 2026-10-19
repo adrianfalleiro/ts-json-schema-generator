@@ -1,4 +1,4 @@
-import ts from "typescript";
+import * as ts from "../ts.js";
 import type { Context, NodeParser } from "../NodeParser.js";
 import type { SubNodeParser } from "../SubNodeParser.js";
 import type { BaseType } from "../Type/BaseType.js";
@@ -15,6 +15,6 @@ export class InferTypeNodeParser implements SubNodeParser {
     }
 
     public createType(node: ts.InferTypeNode, _context: Context): BaseType {
-        return new InferType(node.typeParameter.name.escapedText.toString());
+        return new InferType(node.typeParameter.name.text);
     }
 }
