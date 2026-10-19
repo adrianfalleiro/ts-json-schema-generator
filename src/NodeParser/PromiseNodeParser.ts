@@ -1,4 +1,4 @@
-import ts from "typescript";
+import * as ts from "../ts.js";
 import { ExpectationFailedError } from "../Error/Errors.js";
 import { Context, type NodeParser } from "../NodeParser.js";
 import type { SubNodeParser } from "../SubNodeParser.js";
@@ -61,7 +61,7 @@ export class PromiseNodeParser implements SubNodeParser {
     ): BaseType {
         const type = this.typeChecker.getTypeAtLocation(node);
         const awaitedType = this.typeChecker.getAwaitedType(type)!;
-        const awaitedNode = this.typeChecker.typeToTypeNode(awaitedType, undefined, ts.NodeBuilderFlags.IgnoreErrors);
+        const awaitedNode = this.typeChecker.typeToTypeNode(awaitedType, node, ts.NodeBuilderFlags.IgnoreErrors);
 
         if (!awaitedNode) {
             throw new ExpectationFailedError("Could not find awaited node", node);
@@ -92,7 +92,7 @@ export class PromiseNodeParser implements SubNodeParser {
                 );
             }
 
-            return node.parent.parent.name?.getText();
+            return (node.parent.parent as ts.InterfaceDeclaration | ts.ClassDeclaration).name?.getText();
         }
 
         return node.name?.getText();

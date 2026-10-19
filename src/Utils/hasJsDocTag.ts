@@ -1,7 +1,5 @@
-import type ts from "typescript";
-import { symbolAtNode } from "./symbolAtNode.js";
+import * as ts from "../ts.js";
 
 export function hasJsDocTag(node: ts.Node, tagName: string): boolean {
-    const symbol = symbolAtNode(node);
-    return symbol ? symbol.getJsDocTags()?.some((tag) => tag.name === tagName) : false;
+    return ts.getJsDocTagsOfNode(node)?.some((tag) => tag.name === tagName) ?? false;
 }

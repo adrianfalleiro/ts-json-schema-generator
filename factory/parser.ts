@@ -1,4 +1,4 @@
-import type ts from "typescript";
+import * as ts from "../src/ts.js";
 import { BasicAnnotationsReader } from "../src/AnnotationsReader/BasicAnnotationsReader.js";
 import { ExtendedAnnotationsReader } from "../src/AnnotationsReader/ExtendedAnnotationsReader.js";
 import { ChainNodeParser } from "../src/ChainNodeParser.js";
@@ -69,7 +69,7 @@ import { castArray } from "../src/Utils/castArray.js";
 export type ParserAugmentor = (parser: MutableParser) => void;
 
 export function createParser(program: ts.Program, config: CompletedConfig, augmentor?: ParserAugmentor): NodeParser {
-    const typeChecker = program.getTypeChecker();
+    const typeChecker = ts.getTypeChecker(program);
     const chainNodeParser = new ChainNodeParser(typeChecker, []);
 
     function withExpose(nodeParser: SubNodeParser): SubNodeParser {

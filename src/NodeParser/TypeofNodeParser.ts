@@ -1,4 +1,4 @@
-import ts from "typescript";
+import * as ts from "../ts.js";
 import type { Context, NodeParser } from "../NodeParser.js";
 import type { SubNodeParser } from "../SubNodeParser.js";
 import type { BaseType } from "../Type/BaseType.js";
@@ -27,7 +27,7 @@ export class TypeofNodeParser implements SubNodeParser {
             symbol = this.typeChecker.getAliasedSymbol(symbol);
         }
 
-        const valueDec = symbol.valueDeclaration;
+        const valueDec = ts.getValueDeclaration(symbol);
         if (!valueDec) {
             if (symbol.name === "globalThis") {
                 // avoids crashes on globalThis but we really shoulodn't try to make a schema for globalThis

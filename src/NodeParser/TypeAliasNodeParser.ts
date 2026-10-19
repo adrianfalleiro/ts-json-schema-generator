@@ -1,4 +1,4 @@
-import ts from "typescript";
+import * as ts from "../ts.js";
 import type { Context, NodeParser } from "../NodeParser.js";
 import type { SubNodeParser } from "../SubNodeParser.js";
 import { AliasType } from "../Type/AliasType.js";
@@ -23,8 +23,8 @@ export class TypeAliasNodeParser implements SubNodeParser {
                 const nameSymbol = this.typeChecker.getSymbolAtLocation(typeParam.name)!;
                 context.pushParameter(nameSymbol.name);
 
-                if (typeParam.default) {
-                    const type = this.childNodeParser.createType(typeParam.default, context);
+                if (typeParam.defaultType) {
+                    const type = this.childNodeParser.createType(typeParam.defaultType, context);
                     context.setDefault(nameSymbol.name, type);
                 }
             }

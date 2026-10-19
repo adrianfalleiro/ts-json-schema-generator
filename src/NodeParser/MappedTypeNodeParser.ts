@@ -1,4 +1,4 @@
-import ts from "typescript";
+import * as ts from "../ts.js";
 import { ExpectationFailedError } from "../Error/Errors.js";
 import type { NodeParser } from "../NodeParser.js";
 import { Context } from "../NodeParser.js";

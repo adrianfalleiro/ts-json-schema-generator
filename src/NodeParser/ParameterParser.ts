@@ -1,4 +1,4 @@
-import ts from "typescript";
+import * as ts from "../ts.js";
 import type { NodeParser } from "../NodeParser.js";
 import type { Context } from "../NodeParser.js";
 import type { SubNodeParser } from "../SubNodeParser.js";
@@ -11,6 +11,6 @@ export class ParameterParser implements SubNodeParser {
         return node.kind === ts.SyntaxKind.Parameter;
     }
     public createType(node: ts.FunctionTypeNode, context: Context): BaseType {
-        return this.childNodeParser.createType(node.type, context);
+        return this.childNodeParser.createType(node.type!, context);
     }
 }

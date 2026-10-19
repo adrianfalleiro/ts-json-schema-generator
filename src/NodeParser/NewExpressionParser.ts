@@ -1,4 +1,4 @@
-import ts from "typescript";
+import * as ts from "../ts.js";
 import type { NodeParser } from "../NodeParser.js";
 import { Context } from "../NodeParser.js";
 import type { SubNodeParser } from "../SubNodeParser.js";
@@ -18,12 +18,11 @@ export class NewExpressionParser implements SubNodeParser {
     public createType(node: ts.NewExpression, context: Context): BaseType {
         const type = this.typeChecker.getTypeAtLocation(node);
 
-        const symbol = type.symbol || type.aliasSymbol;
+        const symbol = type.getSymbol() || type.getAliasSymbol();
 
         const decl =
             this.typeChecker.typeToTypeNode(type, node, ts.NodeBuilderFlags.IgnoreErrors) ||
-            symbol?.valueDeclaration ||
-            symbol?.declarations?.[0];
+            (symbol && (ts.getValueDeclaration(symbol) || ts.getDeclarations(symbol)[0]));
 
         if (!decl) {
             throw new UnknownNodeError(node);

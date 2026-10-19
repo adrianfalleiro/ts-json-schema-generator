@@ -42,7 +42,7 @@
     "ts-json-schema-generator.*"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "node node_modules/@typescript/native/bin/tsc",
     "debug": "tsx --inspect-brk ts-json-schema-generator.ts",
     "format": "eslint --fix",
     "lint": "eslint",
@@ -54,17 +54,17 @@
     "test:fast": "cross-env FAST_TEST=1 tsx --test \"test/**/*.test.ts\"",
     "test:update": "cross-env FAST_TEST=1 UPDATE_SCHEMA=true tsx --test \"test/**/*.test.ts\"",
     "test:coverage": "c8 --reporter lcov --reporter text tsx --test \"test/**/*.test.ts\"",
-    "watch": "tsc -w"
+    "watch": "node node_modules/@typescript/native/bin/tsc -w"
   },
   "dependencies": {
     "@types/json-schema": "^7.0.15",
+    "@typescript/native": "npm:typescript@7.1.0-dev.20261015.1",
     "commander": "^14.0.3",
     "glob": "^13.0.6",
     "json5": "^2.2.3",
     "normalize-path": "^3.0.0",
     "safe-stable-stringify": "^2.5.0",
-    "tslib": "^2.8.1",
-    "typescript": ">=5.9 <7"
+    "tslib": "^2.8.1"
   },
   "devDependencies": {
     "@auto-it/conventional-commits": "^11.3.6",
@@ -73,7 +73,6 @@
     "@types/eslint": "^9.6.1",
     "@types/node": "^26.0.1",
     "@types/normalize-path": "^3.0.2",
-    "@typescript/vfs": "1.6.4",
     "ajv": "^8.18.0",
     "ajv-formats": "^3.0.1",
     "auto": "^11.3.6",
@@ -86,6 +85,7 @@
     "prettier": "^3.8.1",
     "try": "^1.0.3",
     "tsx": "^4.21.0",
+    "typescript": "^6.0.3",
     "typescript-eslint": "^8.57.2",
     "vega": "^6.2.0",
     "vega-lite": "^6.4.2"
@@ -96,7 +96,7 @@
     "provenance": true
   },
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=22.12.0"
   },
   "overrides": {
     "@typescript-eslint/eslint-plugin": {

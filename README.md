@@ -98,7 +98,6 @@ Extending the built-in formatting is possible by creating a custom formatter and
 ```ts
 // my-function-formatter.ts
 import { BaseType, Definition, FunctionType, SubTypeFormatter } from "ts-json-schema-generator";
-import ts from "typescript";
 
 export class MyFunctionTypeFormatter implements SubTypeFormatter {
     // You can skip this line if you don't need childTypeFormatter
@@ -176,8 +175,8 @@ Similar to custom formatting, extending the built-in parsing works practically t
 ```ts
 // my-constructor-parser.ts
 import { Context, StringType, ReferenceType, BaseType, SubNodeParser } from "ts-json-schema-generator";
-// use typescript exported by TJS to avoid version conflict
-import ts from "ts-json-schema-generator";
+// use the TypeScript API exported by TJS (TypeScript 7): its `SyntaxKind` values differ from TypeScript 5
+import { ts } from "ts-json-schema-generator";
 
 export class MyConstructorParser implements SubNodeParser {
     supportsNode(node: ts.Node): boolean {

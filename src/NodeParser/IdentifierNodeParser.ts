@@ -1,4 +1,4 @@
-import ts from "typescript";
+import * as ts from "../ts.js";
 import type { Context, NodeParser } from "../NodeParser.js";
 import type { SubNodeParser } from "../SubNodeParser.js";
 import type { BaseType } from "../Type/BaseType.js";
@@ -23,7 +23,7 @@ export class IdentifierNodeParser implements SubNodeParser {
             throw new UnknownNodeError(node);
         }
 
-        const decl = symbol.valueDeclaration;
+        const decl = ts.getValueDeclaration(symbol);
         if (
             decl &&
             ts.isVariableDeclaration(decl) &&

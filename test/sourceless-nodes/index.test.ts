@@ -1,5 +1,5 @@
 import path from "path";
-import ts from "typescript";
+import * as ts from "../../src/ts.js";
 import { createParser } from "../../factory";
 import { Context } from "../../src/NodeParser.js";
 import { LiteralType } from "../../src/Type/LiteralType.js";
@@ -21,10 +21,10 @@ describe("sourceless-nodes", () => {
         const fn = source!.statements[0] as ts.FunctionDeclaration;
 
         // Creates a sourceless type by inferring the function return type.
-        const inferredReturnType = getReturnType(fn, program.getTypeChecker());
+        const inferredReturnType = getReturnType(fn, ts.getTypeChecker(program));
 
         // Checks that the inferred return type does not have any real source file.
-        assert.strictEqual(inferredReturnType.getSourceFile(), undefined);
+        assert.strictEqual(ts.getSourceFileOfNode(inferredReturnType), undefined);
 
         // Generates the json schema of this inferred return type
         const baseType = parser.createType(inferredReturnType, new Context(inferredReturnType));
@@ -46,7 +46,7 @@ describe("sourceless-nodes", () => {
 // From https://github.com/kitajs/kitajs/blob/ebf23297de07887c78becff52120f941e69386ec/packages/parser/src/util/nodes.ts#L64
 function getReturnType(node: ts.SignatureDeclaration, typeChecker: ts.TypeChecker) {
     const signature = typeChecker.getSignatureFromDeclaration(node);
-    const implicitType = typeChecker.getReturnTypeOfSignature(signature!);
+    const implicitType = typeChecker.getReturnTypeOfSignature(signature);
 
     return typeChecker.typeToTypeNode(implicitType, undefined, ts.NodeBuilderFlags.NoTruncation) as ts.TypeNode;
 }

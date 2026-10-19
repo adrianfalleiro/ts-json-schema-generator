@@ -1,5 +1,5 @@
 import stringify from "safe-stable-stringify";
-import type ts from "typescript";
+import type * as ts from "./ts.js";
 import type { BaseType } from "./Type/BaseType.js";
 import type { ReferenceType } from "./Type/ReferenceType.js";
 import { getKey } from "./Utils/nodeKey.js";

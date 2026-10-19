@@ -1,11 +1,11 @@
 import { getFullDescription } from "../../src/Utils/getFullDescription";
-import ts from "typescript";
+import * as ts from "../../src/ts";
 import { describe, it } from "node:test";
 import assert from "node:assert";
 
 function dummyNode(jsDocComment: string): ts.Node {
     const code = `${jsDocComment}\nfunction dummy() {}`;
-    const sourceFile = ts.createSourceFile("dummy.ts", code, ts.ScriptTarget.Latest, true);
+    const { sourceFile } = ts.getAPI().createSourceFile("dummy.ts", code);
     const node = sourceFile.statements.find(ts.isFunctionDeclaration);
     if (!node) {
         throw new Error("Could not create node");
