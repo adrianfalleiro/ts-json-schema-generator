@@ -1,5 +1,5 @@
-import type { PropertyName } from "typescript";
-import ts from "typescript";
+import type { PropertyName } from "../ts.js";
+import * as ts from "../ts.js";
 import type { Context, NodeParser } from "../NodeParser.js";
 import type { SubNodeParser } from "../SubNodeParser.js";
 import { ArrayType } from "../Type/ArrayType.js";
@@ -32,8 +32,8 @@ export class InterfaceAndClassNodeParser implements SubNodeParser {
                 const nameSymbol = this.typeChecker.getSymbolAtLocation(typeParam.name)!;
                 context.pushParameter(nameSymbol.name);
 
-                if (typeParam.default) {
-                    const type = this.childNodeParser.createType(typeParam.default, context);
+                if (typeParam.defaultType) {
+                    const type = this.childNodeParser.createType(typeParam.defaultType, context);
                     context.setDefault(nameSymbol.name, type);
                 }
             });
@@ -76,7 +76,9 @@ export class InterfaceAndClassNodeParser implements SubNodeParser {
             const clause = node.heritageClauses[0];
             if (clause.types.length === 1) {
                 const type = clause.types[0];
-                const symbol = this.typeChecker.getSymbolAtLocation(type.expression);
+                const symbol = this.typeChecker.getSymbolAtLocation(
+                    ts.isTypeReferenceNode(type) ? type.typeName : type.expression,
+                );
                 if (symbol && (symbol.name === "Array" || symbol.name === "ReadonlyArray")) {
                     const typeArguments = type.typeArguments;
                     if (typeArguments?.length === 1) {
@@ -153,7 +155,7 @@ export class InterfaceAndClassNodeParser implements SubNodeParser {
                     new ObjectProperty(
                         this.getPropertyName(member.name),
                         this.childNodeParser.createType(memberType, context),
-                        !member.questionToken,
+                        !ts.hasQuestionToken(member),
                     ),
             )
             .filter((prop) => {
@@ -192,7 +194,7 @@ export class InterfaceAndClassNodeParser implements SubNodeParser {
         if (propertyName.kind === ts.SyntaxKind.ComputedPropertyName) {
             const symbol = this.typeChecker.getSymbolAtLocation(propertyName);
             if (symbol) {
-                return symbol.getName();
+                return symbol.name;
             }
         }
         return propertyName.getText();

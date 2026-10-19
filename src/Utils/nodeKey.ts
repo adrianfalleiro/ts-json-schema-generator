@@ -1,5 +1,5 @@
 import stringify from "safe-stable-stringify";
-import type { Node } from "typescript";
+import { getSourceFileOfNode, type Node } from "../ts.js";
 import type { Context } from "../NodeParser.js";
 
 export function hash(
@@ -36,7 +36,7 @@ export function getKey(node: Node, context: Context): string {
     const ids: (number | string)[] = [];
 
     while (node) {
-        const source = node.getSourceFile();
+        const source = getSourceFileOfNode(node);
 
         // When the node has no source file, we need to prevent collisions  with other sourceless nodes.
         // As they does not have any kind of reference to their parents, Math.random is the best we can

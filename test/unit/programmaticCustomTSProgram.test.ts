@@ -1,9 +1,9 @@
-import { createFSBackedSystem, createVirtualTypeScriptEnvironment } from "@typescript/vfs";
 import assert from "node:assert";
 import { it } from "node:test";
-import ts from "typescript";
+import { serverFS } from "@typescript/native/fs";
 import { createGenerator } from "../../factory/generator";
 import type { Config } from "../../src/Config";
+import * as ts from "../../src/ts";
 
 it("Can generate a schema from a vfs", () => {
     const tsInterface = `
@@ -19,11 +19,21 @@ it("Can generate a schema from a vfs", () => {
     const fsMap = new Map<string, string>();
     fsMap.set("/schema.ts", tsInterface);
 
-    // The FS backed API means that it will use the node_modules for lib.d.ts lookups
-    const system = createFSBackedSystem(fsMap, __dirname, ts);
-    const env = createVirtualTypeScriptEnvironment(system, ["/schema.ts"], ts);
-    const program = env.languageService.getProgram();
-    if (!program) throw new Error("No program");
+    // Files that are not in the map are read from the disk, e.g. for lib.d.ts lookups
+    const api = new ts.API({
+        cwd: __dirname,
+        fs: {
+            directoryExists: serverFS.useOS,
+            fileExists: (fileName) => fsMap.has(fileName) || serverFS.useOS,
+            getAccessibleEntries: serverFS.useOS,
+            readFile: (fileName) => fsMap.get(fileName) ?? serverFS.useOS,
+            realpath: (path) => (fsMap.has(path) ? path : serverFS.useOS),
+            stat: serverFS.fakeStat,
+            writeFile: serverFS.noop,
+            removeFile: serverFS.noop,
+        },
+    });
+    const program = api.createProgram(["/schema.ts"], {});
 
     const schemaConfig: Config = { path: "/schema.ts", tsProgram: program };
     const generator = createGenerator(schemaConfig);

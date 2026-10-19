@@ -1,4 +1,4 @@
-import type ts from "typescript";
+import type * as ts from "../ts.js";
 import type { Annotations } from "../Type/AnnotatedType.js";
 
 export interface AnnotationsReader {

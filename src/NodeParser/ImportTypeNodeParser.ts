@@ -1,4 +1,4 @@
-import ts from "typescript";
+import * as ts from "../ts.js";
 import { Context, type NodeParser } from "../NodeParser.js";
 import type { SubNodeParser } from "../SubNodeParser.js";
 import type { BaseType } from "../Type/BaseType.js";
@@ -22,12 +22,12 @@ export class ImportTypeNodeParser implements SubNodeParser {
         if (typeSymbol.flags & ts.SymbolFlags.Alias) {
             const aliasedSymbol = this.typeChecker.getAliasedSymbol(typeSymbol);
             return this.childNodeParser.createType(
-                aliasedSymbol.declarations![0],
+                ts.getDeclarations(aliasedSymbol)[0],
                 this.createSubContext(node, context),
             );
         }
 
-        return this.childNodeParser.createType(typeSymbol.declarations![0], this.createSubContext(node, context));
+        return this.childNodeParser.createType(ts.getDeclarations(typeSymbol)[0], this.createSubContext(node, context));
     }
 
     protected createSubContext(node: ts.ImportTypeNode, parentContext: Context): Context {

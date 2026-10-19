@@ -1,4 +1,4 @@
-import ts from "typescript";
+import * as ts from "../ts.js";
 import type { Context, NodeParser } from "../NodeParser.js";
 import type { SubNodeParser } from "../SubNodeParser.js";
 import { ArrayType } from "../Type/ArrayType.js";

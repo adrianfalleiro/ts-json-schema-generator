@@ -1,5 +1,5 @@
 import path from "path";
-import ts from "typescript";
+import * as ts from "../../../src/ts.js";
 import { createParser } from "../../../factory";
 import { Context } from "../../../src/NodeParser.js";
 import { DefinitionType } from "../../../src/Type/DefinitionType.js";
@@ -20,10 +20,10 @@ describe("multiple sourceless nodes shouldn't conflict", () => {
         const fn = source!.statements[2] as ts.FunctionDeclaration;
 
         // Creates a sourceless type by inferring the function return type.
-        const inferredReturnType = getReturnType(fn, program.getTypeChecker());
+        const inferredReturnType = getReturnType(fn, ts.getTypeChecker(program));
 
         // Checks that the inferred return type does not have any real source file.
-        assert.strictEqual(inferredReturnType.getSourceFile(), undefined);
+        assert.strictEqual(ts.getSourceFileOfNode(inferredReturnType), undefined);
 
         const createdType = parser.createType(inferredReturnType, new Context(inferredReturnType)) as DefinitionType;
 
@@ -47,7 +47,7 @@ describe("multiple sourceless nodes shouldn't conflict", () => {
 // github.com/kitajs/kitajs/blob/1d1ae58c96c9a35cc426206f4fb19344be1cd3aa/packages/generator/src/util/node.ts#L44
 function getReturnType(node: ts.SignatureDeclaration, typeChecker: ts.TypeChecker) {
     const signature = typeChecker.getSignatureFromDeclaration(node);
-    const implicitType = typeChecker.getReturnTypeOfSignature(signature!);
+    const implicitType = typeChecker.getReturnTypeOfSignature(signature);
 
     return typeChecker.typeToTypeNode(implicitType, undefined, ts.NodeBuilderFlags.NoTruncation) as ts.TypeNode;
 }

@@ -1,15 +1,18 @@
-import ts from "typescript";
+import * as ts from "../ts.js";
 
-export type PartialDiagnostic = Omit<ts.Diagnostic, "category" | "file" | "start" | "length"> & {
-    file?: ts.SourceFile;
-    start?: number;
-    length?: number;
+export type PartialDiagnostic = {
+    code: number;
 
-    /** If we should populate `file`, `source`, `start` and `length` with this node information */
+    /** The error message */
+    messageText: string;
+
+    /** If we should populate `fileName`, `pos`, `end` and the positions with this node information */
     node?: ts.Node;
 
     /** @default Error */
     category?: ts.DiagnosticCategory;
+
+    relatedInformation?: ts.Diagnostic[];
 };
 
 /**
@@ -19,34 +22,52 @@ export abstract class BaseError extends Error {
     readonly diagnostic: ts.Diagnostic;
 
     constructor(diagnostic: PartialDiagnostic) {
-        super(ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n"));
+        super(diagnostic.messageText);
         this.diagnostic = BaseError.createDiagnostic(diagnostic);
     }
 
-    static createDiagnostic(diagnostic: PartialDiagnostic): ts.Diagnostic {
-        // Swap the node for the file, source, start and length properties
-        // sourceless nodes cannot be referenced in the diagnostic
-        if (diagnostic.node && diagnostic.node.pos !== -1) {
-            diagnostic.file = diagnostic.node.getSourceFile();
-            diagnostic.start = diagnostic.node.getStart();
-            diagnostic.length = diagnostic.node.getWidth();
+    static createDiagnostic({
+        code,
+        messageText,
+        node,
+        category,
+        relatedInformation,
+    }: PartialDiagnostic): ts.Diagnostic {
+        const diagnostic: ts.Diagnostic = {
+            // Differentiates from errors from the TypeScript compiler
+            // error TSJ - 100: message
+            source: "TSJ - ",
+            code,
+            text: messageText,
+            category: category ?? ts.DiagnosticCategory.Error,
+            pos: 0,
+            end: 0,
+            relatedInformation,
+        };
 
-            diagnostic.node = undefined;
+        // Swap the node for the file and position information
+        // sourceless nodes cannot be referenced in the diagnostic
+        const sourceFile = node && node.pos !== -1 ? ts.getSourceFileOfNode(node) : undefined;
+        if (node && sourceFile) {
+            const start = node.getStart();
+            const end = node.getEnd();
+            const startPosition = sourceFile.getLineAndCharacterOfPosition(start);
+            const endPosition = sourceFile.getLineAndCharacterOfPosition(end);
+            const lines = sourceFile.text.split(/\r?\n/);
+
+            Object.assign(diagnostic, {
+                fileName: sourceFile.fileName,
+                pos: start,
+                end,
+                startPosition,
+                endPosition,
+                sourceLines: lines
+                    .slice(startPosition.line, endPosition.line + 1)
+                    .map((text, i) => ({ line: startPosition.line + i, text })),
+            });
         }
 
-        // @ts-expect-error - Differentiates from errors from the TypeScript compiler
-        // error TSJ - 100: message
-        diagnostic.code = `J - ${diagnostic.code}`;
-
-        return Object.assign(
-            {
-                category: ts.DiagnosticCategory.Error,
-                file: undefined,
-                length: 0,
-                start: 0,
-            },
-            diagnostic,
-        );
+        return diagnostic;
     }
 
     format(isTTY = process.env.TTY || process.stdout.isTTY): string {

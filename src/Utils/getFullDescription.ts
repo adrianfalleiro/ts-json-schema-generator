@@ -1,4 +1,4 @@
-import ts from "typescript";
+import * as ts from "../ts.js";
 
 export function getFullDescription(node: ts.Node): string | undefined {
     const sourceFile = node.getSourceFile();

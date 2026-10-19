@@ -1,6 +1,5 @@
-import type ts from "typescript";
+import * as ts from "../ts.js";
 
 export function symbolAtNode(node: ts.Node): ts.Symbol | undefined {
-    //@ts-expect-error - internal typescript API
-    return node.symbol;
+    return ts.getSymbolOfNode(node);
 }

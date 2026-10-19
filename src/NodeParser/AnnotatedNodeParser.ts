@@ -1,4 +1,4 @@
-import ts from "typescript";
+import * as ts from "../ts.js";
 import type { AnnotationsReader } from "../AnnotationsReader.js";
 import { ExtendedAnnotationsReader } from "../AnnotationsReader/ExtendedAnnotationsReader.js";
 import type { Context } from "../NodeParser.js";
@@ -34,8 +34,8 @@ export class AnnotatedNodeParser implements SubNodeParser {
         const baseType = this.childNodeParser.createType(node, context, reference);
 
         // Don't return annotations for lib types such as Exclude.
-        // Sourceless nodes may not have a fileName, just ignore them.
-        if (node.getSourceFile()?.fileName.match(/[/\\]typescript[/\\]lib[/\\]lib\.[^/\\]+\.d\.ts$/i)) {
+        // Sourceless nodes do not have a source file, just ignore them.
+        if (ts.isDefaultLibraryNode(node)) {
             let specialCase = false;
 
             // Special case for Exclude<T, U>: use the annotation of T.
