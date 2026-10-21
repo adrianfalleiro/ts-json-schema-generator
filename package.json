@@ -59,7 +59,7 @@
   },
   "dependencies": {
     "@types/json-schema": "^7.0.15",
-    "@typescript/native": "npm:typescript@7.1.0-dev.20261015.1",
+    "@typescript/native": "npm:typescript@7.1.0-beta",
     "commander": "^14.0.3",
     "glob": "^13.0.6",
     "json5": "^2.2.3",
